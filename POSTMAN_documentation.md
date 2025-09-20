@@ -107,7 +107,7 @@ expected output:
     }
 }
 
-### 4. Get all users with pagination
+### 4. Get all users with pagination and filtering
 Method: GET  
 URL: http://localhost:3000/api/users
 
@@ -115,6 +115,18 @@ Go to headers and write:
 - Authorization: Bearer {Token that was recived in step 2}
 
 then click on body -> none
+
+- if you want to add filters this is an example of the url:
+http://localhost:3000/api/users?page=1&limit=10&ageMin=18&ageMax=65&sortBy=createdAt&sortOrder=desc
+
+Query Parameters:
+- page (integer, default: 1): Page number
+- limit (integer, default: 10, max: 100): Items per page
+- ageMin (integer): Minimum age filter
+- ageMax (integer): Maximum age filter
+- search (string): Search by name or email
+- sortBy (string): Sort field (name, email, age, createdAt)
+- sortOrder (string): Sort order (asc, desc)
 
 expected output will be all the created users:
 
@@ -329,4 +341,29 @@ expected output:
     "status": "success",
     "message": "Server is running successfully",
     "timestamp": "2025-09-20T18:01:19.285Z"
+}
+
+## 10. Get current profile
+Method: GET  
+URL: http://localhost:3000/api/auth/profile
+
+Go to headers and write:
+- Authorization: Bearer {Token that was recived in step 2}
+
+then click on body -> none
+
+expected output:
+
+{
+    "status": "success",
+    "data": {
+        "user": {
+            "id": "68cee68c38e934b49129a69a",
+            "username": "malakHatem",
+            "email": "malakhatem@gmail.com",
+            "role": "user",
+            "lastLogin": "2025-09-20T17:41:36.335Z",
+            "createdAt": "2025-09-20T17:38:20.256Z"
+        }
+    }
 }
