@@ -1,0 +1,46 @@
+{
+  "name": "user-management-api",
+  "version": "1.0.0",
+  "description": "A RESTful API for user profile management with JWT authentication",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "api",
+    "rest",
+    "mongodb",
+    "jwt",
+    "express",
+    "user-management"
+  ],
+  "author": "Backend Assessment",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^6.8.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "joi": "^17.9.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "4.1",
+    "mongoose": "^7.5.0"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2",
+    "mongodb-memory-server": "^8.15.1",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
