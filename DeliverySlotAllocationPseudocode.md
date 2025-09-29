@@ -189,44 +189,24 @@ function findAlternativeSlots(bookingRequest):
     }
     
     # Get available slots with capacity
-    availableSlots = database.query(`
-        SELECT * FROM DeliverySlots 
-        WHERE zone = ? 
-        AND isActive = true 
-        AND date BETWEEN ? AND ? 
-        AND currentBookings < capacity 
-        ORDER BY 
-            ABS(DATEDIFF(date, ?)) ASC,  # Prefer dates closer to preferred date
-            priority DESC,                # Prefer higher priority slots
-            startTime ASC                # Prefer earlier times
-        LIMIT 5
-    `, [preferredZone, searchCriteria.date.start, searchCriteria.date.end, preferredDate])
+    availableSlots = findSlots({
+        zone: preferredZone,
+        isActive: true,
+        dateRange: {
+            start: searchCriteria.date.start,
+            end: searchCriteria.date.end
+        },
+        hasCapacity: true,  # currentBookings < capacity
+        sortBy: [
+            { field: "date", order: "ASC", reference: preferredDate },  # Prefer dates closer to preferred date
+            { field: "priority", order: "DESC" },             # Prefer higher priority slots
+            { field: "startTime", order: "ASC" }              # Prefer earlier times
+        ],
+        limit: 5
+    })
     
-    # Apply filtering and scoring
-    alternativeSlots = []
-    
-    for each slot in availableSlots:
-        # Calculate availability percentage
-        availabilityPercentage = ((slot.capacity - slot.currentBookings) / slot.capacity) * 100
-        
-        # Calculate time difference score
-        timeDifference = calculateTimeDifference(preferredSlot, slot)
-        timeScore = calculateTimeScore(timeDifference)
-        
-        # Calculate final score
-        finalScore = (availabilityPercentage * 0.4) + (timeScore * 0.6)
-        
-        # Add to alternatives with metadata
-        alternativeSlot = slot
-        alternativeSlot.availabilityPercentage = availabilityPercentage
-        alternativeSlot.score = finalScore
-        alternativeSlot.timeDifferenceMinutes = timeDifference
-        
-        alternativeSlots.add(alternativeSlot)
-    
-    # Sort by score (descending) and return all
-    sortedAlternatives = sortByScore(alternativeSlots, "DESC")
-    return sortedAlternatives
+    return availableSlots
+    #extra sorting could be done by giving the availability of the slot score and the time a score and sorting on this final combined score
 ```
 
 ### Function: isSlotAvailable(slot)
@@ -318,23 +298,27 @@ function getAvailableSlots(zone, startDate, endDate):
     # This function provides real-time slot availability for the frontend
     
     # Get all slots in the specified range
-    slots = database.query(`
-        SELECT slotId, date, startTime, endTime, capacity, currentBookings, 
-               price, (capacity - currentBookings) as availableSpots
-        FROM DeliverySlots 
-        WHERE zone = ? 
-        AND date BETWEEN ? AND ? 
-        AND isActive = true
-        ORDER BY date ASC, startTime ASC
-    `, [zone, startDate, endDate])
+    slots = findSlots({
+        zone: zone,
+        dateRange: {
+            start: startDate,
+            end: endDate
+        },
+        isActive: true,
+        fields: [
+            "slotId", "date", "startTime", "endTime", 
+            "capacity", "currentBookings", "price"
+        ],
+        calculateFields: {
+            availableSpots: "capacity - currentBookings"
+        },
+    })
     
     availableSlots = []
     
     for each slot in slots:
         # Check real-time availability
         if isSlotAvailable(slot) and slot.availableSpots > 0:
-            # Calculate demand indicator
-            demandLevel = calculateDemandLevel(slot)
             
             # Add real-time metadata
             slotInfo = {
@@ -345,9 +329,6 @@ function getAvailableSlots(zone, startDate, endDate):
                 availableSpots: slot.availableSpots,
                 totalCapacity: slot.capacity,
                 price: slot.price,
-                demandLevel: demandLevel,  # "LOW", "MEDIUM", "HIGH"
-                isPopular: demandLevel == "HIGH",
-                estimatedFillTime: estimateSlotFillTime(slot)
             }
             
             availableSlots.add(slotInfo)

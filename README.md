@@ -27,7 +27,7 @@ Secure token-based authentication system
 - Express.js
 - MongoDB 
 - JSON Web Tokens (JWT)
-- Joi & Express Validator
+- Express Validator
 - CORS, Rate Limiting
 
 ## Project Structure
